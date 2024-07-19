@@ -7,11 +7,19 @@ import (
 	"monkey/token"
 )
 
+type (
+	prefix_parse_fn func() ast.Expression
+	infix_parse_fn  func(ast.Expression) ast.Expression
+)
+
 type Parser struct {
 	l             *lexer.Lexer
 	current_token token.Token
 	peek_token    token.Token
 	errors        []string
+
+	prefix_parse_fns map[token.TokenType]prefix_parse_fn
+	infix_parse_fns  map[token.TokenType]infix_parse_fn
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -67,7 +75,7 @@ func (p *Parser) parse_return_statement() *ast.ReturnStatement {
 
 	statement := &ast.ReturnStatement{Token: p.current_token}
 
-	for !p.current_token_is(token.SEMICOLON){
+	for !p.current_token_is(token.SEMICOLON) {
 		p.next_token()
 	}
 
@@ -126,4 +134,12 @@ func (p *Parser) Errors() []string {
 func (p *Parser) peek_error(t token.TokenType) {
 	msg := fmt.Sprintf("Expected next token to be %s but got %s instead", t, p.peek_token.Type)
 	p.errors = append(p.errors, msg)
+}
+
+func (p *Parser) register_prefix(tokenType token.TokenType, fn prefix_parse_fn) {
+	p.prefix_parse_fns[tokenType] = fn
+}
+
+func (p *Parser) register_infix(tokenType token.TokenType, fn infix_parse_fn) {
+	p.infix_parse_fns[tokenType] = fn
 }
