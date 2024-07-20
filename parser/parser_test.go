@@ -104,17 +104,52 @@ func TestReturnStatement(t *testing.T) {
 	}
 
 	for _, statement := range program.Statements {
-		// Type assertion, basically checking if the statement is off correct type  
+		// Type assertion, basically checking if the statement is off correct type
 		return_statement, ok := statement.(*ast.ReturnStatement)
 		if !ok {
 			t.Errorf("statement is not a return statement")
 		}
 
-		if return_statement.TokenLiteral() != "return"{
+		if return_statement.TokenLiteral() != "return" {
 
 			t.Errorf("return_statement.TokenLiter() didn't return 'return' got %s instead", return_statement.TokenLiteral())
 
 		}
 
 	}
+}
+
+func TestIdentifierExprssion(t *testing.T) {
+
+	input := "5;"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	check_parser_errors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("Program has wrong number of statements. got=%d", len(program.Statements))
+	}
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+
+	if !ok {
+		t.Fatalf("program.Statement[0] is not an expression it's an %T", program.Statements[0])
+	}
+
+	literal, ok := statement.Expression.(*ast.IntegerLiteral)
+	if !ok {
+		t.Fatalf("Expression not an IntegerLiteral got %T", statement.Expression)
+	}
+
+	if literal.Value != 5 {
+		t.Errorf("identifier not %s, got=%d", "foobar", literal.Value)
+	}
+
+	if literal.TokenLiteral() != "5" {
+		t.Errorf("ident.TokenLiteral not %s, got=%s", "5", literal.TokenLiteral())
+
+	}
+
 }

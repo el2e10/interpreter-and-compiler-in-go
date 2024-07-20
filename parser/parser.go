@@ -5,6 +5,18 @@ import (
 	"monkey/ast"
 	"monkey/lexer"
 	"monkey/token"
+	"strconv"
+)
+
+const (
+	_ int = iota
+	LOWEST
+	EQUALS
+	LESSGREATER
+	SUM
+	PRODUCT
+	PREFIX
+	CALL
 )
 
 type (
@@ -27,7 +39,15 @@ func New(l *lexer.Lexer) *Parser {
 	p := &Parser{l: l, errors: []string{}}
 	p.next_token()
 	p.next_token()
+
+	p.prefix_parse_fns = make(map[token.TokenType]prefix_parse_fn)
+	p.register_prefix(token.IDENT, p.parse_identifier)
+	p.register_prefix(token.INT, p.parse_integer_literal)
 	return p
+}
+
+func (p *Parser) parse_identifier() ast.Expression {
+	return &ast.Identifier{Token: p.current_token, Value: p.current_token.Literal}
 }
 
 func (p *Parser) next_token() {
@@ -63,8 +83,49 @@ func (p *Parser) parse_statement() ast.Statement {
 	case token.RETURN:
 		return p.parse_return_statement()
 	default:
+		return p.parse_expression_statement()
+	}
+}
+
+func (p *Parser) parse_expression_statement() *ast.ExpressionStatement {
+
+	statement := &ast.ExpressionStatement{Token: p.current_token}
+	statement.Expression = p.parse_expression(LOWEST)
+
+	if p.peek_token_is(token.SEMICOLON) {
+		p.next_token()
+	}
+
+	return statement
+}
+
+func (p *Parser) parse_integer_literal() ast.Expression {
+
+	literal := &ast.IntegerLiteral{Token: p.current_token}
+
+	value, error := strconv.ParseInt(p.current_token.Literal, 0, 64)
+	if error != nil {
+		msg := fmt.Sprintf("Could not parser %q as integer", p.current_token.Literal)
+		p.errors = append(p.errors, msg)
 		return nil
 	}
+
+	literal.Value = value
+
+	return literal
+
+}
+
+func (p *Parser) parse_expression(precedence int) ast.Expression {
+
+	prefix := p.prefix_parse_fns[p.current_token.Type]
+	if prefix == nil {
+		return nil
+	}
+
+	left_exp := prefix()
+	return left_exp
+
 }
 
 func (p *Parser) parse_return_statement() *ast.ReturnStatement {
