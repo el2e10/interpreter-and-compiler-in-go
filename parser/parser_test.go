@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"monkey/ast"
 	"monkey/lexer"
 	"testing"
@@ -152,4 +153,66 @@ func TestIdentifierExprssion(t *testing.T) {
 
 	}
 
+}
+
+func TestParsingPrefixExpressions(t *testing.T) {
+
+	prefix_tests := []struct {
+		input         string
+		operator      string
+		integer_value int64
+	}{{"!5", "!", 5}, {"!5", "!", 5}}
+
+	for _, tt := range prefix_tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		check_parser_errors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("Program contained incorrect number of statements expected was %d got=%d", 1, len(program.Statements))
+		}
+
+		statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Errorf("Wrong type of statement was created got=%T", program.Statements[0])
+		}
+
+		exp, ok := statement.Expression.(*ast.PrefixExpression)
+		if !ok {
+			t.Errorf("statement was not a Prefix expression got=%T", statement.Expression)
+		}
+
+		if exp.Operator != tt.operator {
+			t.Fatalf("Exp.Operator is not '%s'  got=%s", tt.operator, exp.Operator)
+		}
+
+		if !test_integer_literal(t, exp.Right, tt.integer_value) {
+			return
+		}
+	}
+
+}
+
+func test_integer_literal(t *testing.T, il ast.Expression, value int64) bool {
+
+	integer, ok := il.(*ast.IntegerLiteral)
+
+	if !ok {
+		t.Errorf("il not *ast.IntegerLiteral got=%T", il)
+		return false
+	}
+
+	if integer.Value != value {
+		t.Errorf("integer.Value not %d got=%d", value, integer.Value)
+		return false
+	}
+
+	if integer.TokenLiteral() != fmt.Sprintf("%d", value) {
+		t.Errorf("integ.TokenLiteral not %d. got=%s", value,
+			integer.TokenLiteral())
+		return false
+	}
+	return true
 }

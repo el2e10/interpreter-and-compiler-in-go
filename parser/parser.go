@@ -43,6 +43,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.prefix_parse_fns = make(map[token.TokenType]prefix_parse_fn)
 	p.register_prefix(token.IDENT, p.parse_identifier)
 	p.register_prefix(token.INT, p.parse_integer_literal)
+	p.register_prefix(token.BANG, p.parse_prefix_expression)
+	p.register_prefix(token.MINUS, p.parse_prefix_expression)
 	return p
 }
 
@@ -111,7 +113,6 @@ func (p *Parser) parse_integer_literal() ast.Expression {
 	}
 
 	literal.Value = value
-
 	return literal
 
 }
@@ -120,11 +121,33 @@ func (p *Parser) parse_expression(precedence int) ast.Expression {
 
 	prefix := p.prefix_parse_fns[p.current_token.Type]
 	if prefix == nil {
+		p.no_prefix_parse_fn_error(p.current_token.Type)
 		return nil
 	}
 
 	left_exp := prefix()
 	return left_exp
+
+}
+
+func (p *Parser) parse_prefix_expression() ast.Expression {
+
+	expression := &ast.PrefixExpression{
+		Token:    p.current_token,
+		Operator: p.current_token.Literal,
+	}
+
+	p.next_token()
+	expression.Right = p.parse_expression(PREFIX)
+
+	return expression
+
+}
+
+func (p *Parser) no_prefix_parse_fn_error(t token.TokenType) {
+
+	msg := fmt.Sprintf("No prefix parse function for %s found", t)
+	p.errors = append(p.errors, msg)
 
 }
 

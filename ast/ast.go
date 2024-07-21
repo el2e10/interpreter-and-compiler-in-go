@@ -38,10 +38,9 @@ type IntegerLiteral struct {
 	Value int64
 }
 
-func (i *IntegerLiteral) expressionNode(){}
-func (i *IntegerLiteral) TokenLiteral() string { return i.Token.Literal}
-func (i *IntegerLiteral) String() string {return i.Token.Literal}
-
+func (i *IntegerLiteral) expressionNode()      {}
+func (i *IntegerLiteral) TokenLiteral() string { return i.Token.Literal }
+func (i *IntegerLiteral) String() string       { return i.Token.Literal }
 
 // For parsing expressions like x + 10
 type ExpressionStatement struct {
@@ -107,6 +106,26 @@ func (rs *ReturnStatement) String() string {
 	}
 
 	out.WriteString(";")
+
+	return out.String()
+}
+
+type PrefixExpression struct {
+	// Used to represent infix expressions like !x or -x
+	Token    token.Token // The prefix token like ! or -
+	Operator string
+	Right    Expression
+}
+
+func (pe *PrefixExpression) expressionNode(){}
+func (pe *PrefixExpression) TokenLiteral() string { return pe.Token.Literal }
+func (pe *PrefixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(pe.Operator)
+	out.WriteString(pe.Right.String())
+	out.WriteString(")")
 
 	return out.String()
 }
