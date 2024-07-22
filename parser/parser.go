@@ -19,6 +19,33 @@ const (
 	CALL
 )
 
+var precedences = map[token.TokenType]int{
+	token.EQ:       EQUALS,
+	token.NOT_EQ:   EQUALS,
+	token.LT:       LESSGREATER,
+	token.GT:       LESSGREATER,
+	token.PLUS:     SUM,
+	token.MINUS:    SUM,
+	token.SLASH:    PRODUCT,
+	token.ASTERISK: PRODUCT,
+}
+
+func (p *Parser) peek_precedence() int {
+
+	if p, ok := precedences[p.peek_token.Type]; ok {
+		return p
+	}
+	return LOWEST
+}
+
+func (p *Parser) cur_precedence() int {
+
+	if p, ok := precedences[p.current_token.Type]; ok {
+		return p
+	}
+	return LOWEST
+}
+
 type (
 	prefix_parse_fn func() ast.Expression
 	infix_parse_fn  func(ast.Expression) ast.Expression
@@ -45,7 +72,32 @@ func New(l *lexer.Lexer) *Parser {
 	p.register_prefix(token.INT, p.parse_integer_literal)
 	p.register_prefix(token.BANG, p.parse_prefix_expression)
 	p.register_prefix(token.MINUS, p.parse_prefix_expression)
+
+	p.infix_parse_fns = make(map[token.TokenType]infix_parse_fn)
+	p.register_infix(token.PLUS, p.parse_infix_expression)
+	p.register_infix(token.MINUS, p.parse_infix_expression)
+	p.register_infix(token.SLASH, p.parse_infix_expression)
+	p.register_infix(token.ASTERISK, p.parse_infix_expression)
+	p.register_infix(token.EQ, p.parse_infix_expression)
+	p.register_infix(token.NOT_EQ, p.parse_infix_expression)
+	p.register_infix(token.LT, p.parse_infix_expression)
+	p.register_infix(token.GT, p.parse_infix_expression)
+
 	return p
+}
+
+func (p *Parser) parse_infix_expression(left ast.Expression) ast.Expression {
+	expression := &ast.InfixExpression{
+		Token:    p.current_token,
+		Operator: p.current_token.Literal,
+		Left:     left,
+	}
+
+	precedence := p.cur_precedence()
+	p.next_token()
+	expression.Right = p.parse_expression(precedence)
+
+	return expression
 }
 
 func (p *Parser) parse_identifier() ast.Expression {
@@ -126,6 +178,18 @@ func (p *Parser) parse_expression(precedence int) ast.Expression {
 	}
 
 	left_exp := prefix()
+
+	for !p.peek_token_is(token.SEMICOLON) && precedence < p.peek_precedence() {
+
+		infix := p.infix_parse_fns[p.peek_token.Type]
+
+		if infix == nil {
+			return left_exp
+		}
+		p.next_token()
+		left_exp = infix(left_exp)
+	}
+
 	return left_exp
 
 }

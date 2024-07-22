@@ -7,6 +7,58 @@ import (
 	"testing"
 )
 
+func TestParsingInfixExpressions(t *testing.T) {
+
+	infix_tests := []struct {
+		input       string
+		left_value  int64
+		operator    string
+		right_value int64
+	}{
+		{"5 + 5;", 5, "+", 5},
+		{"5 - 5;", 5, "-", 5},
+		{"5 * 5;", 5, "*", 5},
+		{"5 / 5;", 5, "/", 5},
+		{"5 > 5;", 5, ">", 5},
+		{"5 < 5;", 5, "<", 5},
+		{"5 == 5;", 5, "==", 5},
+		{"5 != 5;", 5, "!=", 5},
+	}
+
+	for _, tt := range infix_tests {
+
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		check_parser_errors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements does not contain %d statements. got=%d\n",
+				1, len(program.Statements))
+		}
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+				program.Statements[0])
+		}
+		exp, ok := stmt.Expression.(*ast.InfixExpression)
+		if !ok {
+			t.Fatalf("exp is not ast.InfixExpression. got=%T", stmt.Expression)
+		}
+		if !test_integer_literal(t, exp.Left, tt.left_value) {
+			return
+		}
+		if exp.Operator != tt.operator {
+			t.Fatalf("exp.Operator is not '%s'. got=%s",
+				tt.operator, exp.Operator)
+		}
+		if !test_integer_literal(t, exp.Right, tt.right_value) {
+			return
+		}
+	}
+
+}
+
 func TestLetStatemnts(t *testing.T) {
 	input := ` 
 	let x = 5;
@@ -170,6 +222,7 @@ func TestParsingPrefixExpressions(t *testing.T) {
 		program := p.ParseProgram()
 		check_parser_errors(t, p)
 
+		fmt.Print(program.Statements[0])
 		if len(program.Statements) != 1 {
 			t.Fatalf("Program contained incorrect number of statements expected was %d got=%d", 1, len(program.Statements))
 		}
