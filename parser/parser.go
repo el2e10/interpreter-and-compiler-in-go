@@ -72,6 +72,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.register_prefix(token.INT, p.parse_integer_literal)
 	p.register_prefix(token.BANG, p.parse_prefix_expression)
 	p.register_prefix(token.MINUS, p.parse_prefix_expression)
+	p.register_prefix(token.TRUE, p.parse_boolean)
+	p.register_prefix(token.FALSE, p.parse_boolean)
 
 	p.infix_parse_fns = make(map[token.TokenType]infix_parse_fn)
 	p.register_infix(token.PLUS, p.parse_infix_expression)
@@ -84,6 +86,16 @@ func New(l *lexer.Lexer) *Parser {
 	p.register_infix(token.GT, p.parse_infix_expression)
 
 	return p
+}
+
+func (p *Parser) parse_boolean() ast.Expression {
+
+	boolean := &ast.Boolean{
+		Token: p.current_token,
+		Value: p.current_token_is(token.TRUE),
+	}
+	return boolean
+
 }
 
 func (p *Parser) parse_infix_expression(left ast.Expression) ast.Expression {
@@ -238,6 +250,7 @@ func (p *Parser) parse_let_statement() *ast.LetStatement {
 	*/
 	statement := &ast.LetStatement{Token: p.current_token}
 
+
 	if !p.expect_peek(token.IDENT) {
 		return nil
 	}
@@ -247,6 +260,9 @@ func (p *Parser) parse_let_statement() *ast.LetStatement {
 	if !p.expect_peek(token.ASSIGN) {
 		return nil
 	}
+
+	p.next_token()
+	statement.ReturnValue = p.parse_expression(LOWEST)
 
 	for !p.current_token_is(token.SEMICOLON) {
 		p.next_token()

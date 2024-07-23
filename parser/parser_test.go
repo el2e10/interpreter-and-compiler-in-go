@@ -7,8 +7,92 @@ import (
 	"testing"
 )
 
-func TestParsingInfixExpressions(t *testing.T) {
+func test_identifier(t *testing.T, exp ast.Expression, value string) bool {
 
+	ident, ok := exp.(*ast.Identifier)
+	if !ok {
+		t.Errorf("exp not *ast.Identifier got=%T", exp)
+		return false
+	}
+
+	if ident.Value != value {
+		t.Errorf("ident.Value not %s, got=%s", value, ident.Value)
+		return false
+	}
+
+	if ident.TokenLiteral() != value {
+		t.Errorf("ident.TokenLiteral not %s, got=%s", value, ident.TokenLiteral())
+		return false
+	}
+	return true
+}
+
+func test_literal_expression(t *testing.T,
+	exp ast.Expression,
+	expected interface{}) bool {
+	switch v := expected.(type) {
+	case int:
+		return test_integer_literal(t, exp, int64(v))
+	case int64:
+		return test_integer_literal(t, exp, v)
+	case string:
+		return test_identifier(t, exp, v)
+	}
+	t.Errorf("type of exp not handled. got=%T", exp)
+	return false
+}
+
+func test_infix_expression(t *testing.T, exp ast.Expression, left interface{}, operator string, right interface{}) bool {
+
+	opExp, ok := exp.(*ast.InfixExpression)
+	if !ok {
+		t.Errorf("exp is not ast.InfixExpression. got=%T(%s)", exp, exp)
+		return false
+	}
+	if !test_literal_expression(t, opExp.Left, left) {
+		return false
+	}
+	if opExp.Operator != operator {
+		t.Errorf("exp.Operator is not '%s'. got=%q", operator, opExp.Operator)
+		return false
+	}
+	if !test_literal_expression(t, opExp.Right, right) {
+		return false
+	}
+	return true
+}
+
+func TestBooleanExpression(t *testing.T) {
+
+	input := "let foobar = true;"
+	lxr := lexer.New(input)
+	psr := New(lxr)
+
+	program := psr.ParseProgram()
+	check_parser_errors(t, psr)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("Wrong number of statements returned expected %d, but got=%d", 1, len(program.Statements))
+	}
+
+	//statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	statement, ok := program.Statements[0].(*ast.LetStatement)
+	if !ok {
+		t.Fatalf("Wrong program.Statement[0] type, got=%T", program.Statements[0])
+	}
+
+	expression, ok := statement.ReturnValue.(*ast.Boolean)
+	if !ok {
+		t.Fatalf("Wrong Expression type expected Boolean got=%T %q", statement.ReturnValue, statement)
+	}
+
+	if expression.Value != true {
+		t.Fatalf("Wrong value expected %t, but got=%t", true, expression.Value)
+	}
+
+}
+
+func TestParsingInfixExpressions(t *testing.T) {
 	infix_tests := []struct {
 		input       string
 		left_value  int64

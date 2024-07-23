@@ -24,6 +24,15 @@ type Program struct {
 	Statements []Statement
 }
 
+type Boolean struct {
+	Token token.Token
+	Value bool
+}
+
+func (b *Boolean) expressionNode()      {}
+func (b *Boolean) TokenLiteral() string { return b.Token.Literal }
+func (b *Boolean) String() string       { return b.Token.Literal }
+
 type Identifier struct {
 	Token token.Token
 	Value string
@@ -123,7 +132,7 @@ func (ie *InfixExpression) String() string {
 	var out bytes.Buffer
 	out.WriteString("(")
 	out.WriteString(ie.Left.String())
-	out.WriteString(" "+ie.Operator+" ")
+	out.WriteString(" " + ie.Operator + " ")
 	out.WriteString(ie.Right.String())
 	out.WriteString(")")
 
