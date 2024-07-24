@@ -74,6 +74,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.register_prefix(token.MINUS, p.parse_prefix_expression)
 	p.register_prefix(token.TRUE, p.parse_boolean)
 	p.register_prefix(token.FALSE, p.parse_boolean)
+	p.register_prefix(token.LPAREN, p.parse_grouped_expression)
+	p.register_prefix(token.IF, p.parse_if_expression)
 
 	p.infix_parse_fns = make(map[token.TokenType]infix_parse_fn)
 	p.register_infix(token.PLUS, p.parse_infix_expression)
@@ -86,6 +88,74 @@ func New(l *lexer.Lexer) *Parser {
 	p.register_infix(token.GT, p.parse_infix_expression)
 
 	return p
+}
+
+func (p *Parser) parse_if_expression() ast.Expression {
+
+	expression := &ast.IfExpression{Token: p.current_token}
+
+	if !p.expect_peek(token.LPAREN) {
+		return nil
+	}
+
+	p.next_token()
+	expression.Condition = p.parse_expression(LOWEST)
+
+	if !p.expect_peek(token.RPAREN) {
+		return nil
+	}
+
+	if !p.expect_peek(token.LBRACE) {
+		return nil
+	}
+
+	expression.Consequence = p.parse_block_statement()
+
+	if p.peek_token_is(token.ELSE) {
+		p.next_token()
+
+		if !p.expect_peek(token.LBRACE) {
+			return nil
+		}
+
+		expression.Alternative = p.parse_block_statement()
+
+	}
+
+	return expression
+
+}
+
+func (p *Parser) parse_block_statement() *ast.BlockStatement {
+	block := &ast.BlockStatement{Token: p.current_token}
+	block.Statements = []ast.Statement{}
+
+	p.next_token()
+
+	for !p.current_token_is(token.RBRACE) && !p.current_token_is(token.EOF) {
+		statement := p.parse_statement()
+		if statement != nil {
+			block.Statements = append(block.Statements, statement)
+		}
+
+		p.next_token()
+	}
+
+	return block
+}
+
+func (p *Parser) parse_grouped_expression() ast.Expression {
+
+	p.next_token()
+
+	exp := p.parse_expression(LOWEST)
+
+	if !p.expect_peek(token.RPAREN) {
+		return nil
+	}
+
+	return exp
+
 }
 
 func (p *Parser) parse_boolean() ast.Expression {
@@ -249,7 +319,6 @@ func (p *Parser) parse_let_statement() *ast.LetStatement {
 		Checks if the statement is of the for 'let x = 5;'
 	*/
 	statement := &ast.LetStatement{Token: p.current_token}
-
 
 	if !p.expect_peek(token.IDENT) {
 		return nil
