@@ -28,6 +28,7 @@ var precedences = map[token.TokenType]int{
 	token.MINUS:    SUM,
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
+	token.LPAREN:   CALL,
 }
 
 func (p *Parser) peek_precedence() int {
@@ -79,6 +80,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.register_prefix(token.FUNCTION, p.parse_function_expression)
 
 	p.infix_parse_fns = make(map[token.TokenType]infix_parse_fn)
+	p.register_infix(token.LPAREN, p.parse_call_expression)
 	p.register_infix(token.PLUS, p.parse_infix_expression)
 	p.register_infix(token.MINUS, p.parse_infix_expression)
 	p.register_infix(token.SLASH, p.parse_infix_expression)
@@ -89,6 +91,42 @@ func New(l *lexer.Lexer) *Parser {
 	p.register_infix(token.GT, p.parse_infix_expression)
 
 	return p
+}
+
+func (p *Parser) parse_call_expression(function ast.Expression) ast.Expression {
+
+	expression := &ast.CallExpression{Token: p.current_token, Function: function}
+	expression.Arguments = p.parse_call_arguments()
+
+	return expression
+}
+
+func (p *Parser) parse_call_arguments() []ast.Expression {
+
+	arguments := []ast.Expression{}
+
+	if p.peek_token_is(token.RPAREN) {
+		p.next_token()
+		return arguments
+
+	}
+
+	p.next_token()
+
+	arguments = append(arguments, p.parse_expression(LOWEST))
+
+	for p.peek_token_is(token.COMMA) {
+		p.next_token()
+		p.next_token()
+		arguments = append(arguments, p.parse_expression(LOWEST))
+	}
+
+	if !p.expect_peek(token.RPAREN) {
+		return nil
+	}
+
+	return arguments
+
 }
 
 func (p *Parser) parse_function_expression() ast.Expression {
@@ -248,6 +286,7 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 		statement := p.parse_statement()
 		if statement != nil {
+			fmt.Println(statement)
 			program.Statements = append(program.Statements, statement)
 		}
 
@@ -351,6 +390,9 @@ func (p *Parser) parse_return_statement() *ast.ReturnStatement {
 
 	statement := &ast.ReturnStatement{Token: p.current_token}
 
+	p.next_token()
+	statement.Value = p.parse_expression(LOWEST)
+
 	for !p.current_token_is(token.SEMICOLON) {
 		p.next_token()
 	}
@@ -371,6 +413,7 @@ func (p *Parser) parse_let_statement() *ast.LetStatement {
 	}
 
 	statement.Name = &ast.Identifier{Token: p.current_token, Value: p.current_token.Literal}
+
 
 	if !p.expect_peek(token.ASSIGN) {
 		return nil
