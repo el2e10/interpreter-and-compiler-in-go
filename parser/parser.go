@@ -286,7 +286,6 @@ func (p *Parser) ParseProgram() *ast.Program {
 
 		statement := p.parse_statement()
 		if statement != nil {
-			fmt.Println(statement)
 			program.Statements = append(program.Statements, statement)
 		}
 
