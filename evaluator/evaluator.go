@@ -24,20 +24,69 @@ func Eval(node ast.Node) object.Object {
 		return &object.Integer{Value: node.Value}
 
 	case *ast.Boolean:
-		if node.Value {
-			return TRUE
-		} else {
-			return FALSE
-		}
+		return native_bool_to_boolean_object(node.Value)
 
 	case *ast.PrefixExpression:
 		{
 			right := Eval(node.Right)
 			return eval_prefix_expression(node.Operator, right)
 		}
+	case *ast.InfixExpression:
+		{
+			right := Eval(node.Right)
+			left := Eval(node.Left)
+			return eval_infix_expression(node.Operator, left, right)
+		}
 	}
 
 	return nil
+}
+
+func eval_infix_expression(operator string, left object.Object, right object.Object) object.Object {
+	switch {
+	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
+		return eval_integer_infix_expression(operator, left, right)
+	case operator == "==":
+		return native_bool_to_boolean_object(left == right)
+	case operator == "!=":
+		return native_bool_to_boolean_object(left != right)
+	default:
+		return NULL
+	}
+}
+
+func eval_integer_infix_expression(operator string, left object.Object, right object.Object) object.Object {
+	left_value := left.(*object.Integer).Value
+	right_value := right.(*object.Integer).Value
+
+	switch operator {
+	case "+":
+		return &object.Integer{Value: left_value + right_value}
+
+	case "-":
+		return &object.Integer{Value: left_value - right_value}
+
+	case "*":
+		return &object.Integer{Value: left_value * right_value}
+
+	case "/":
+		return &object.Integer{Value: left_value / right_value}
+
+	case "<":
+		return native_bool_to_boolean_object(left_value < right_value)
+
+	case ">":
+		return native_bool_to_boolean_object(left_value > right_value)
+
+	case "==":
+		return native_bool_to_boolean_object(left_value == right_value)
+
+	case "!=":
+		return native_bool_to_boolean_object(left_value != right_value)
+
+	default:
+		return NULL
+	}
 }
 
 func eval_prefix_expression(operator string, right object.Object) object.Object {
@@ -87,4 +136,12 @@ func eval_statement(stmts []ast.Statement) object.Object {
 	}
 
 	return result
+}
+
+func native_bool_to_boolean_object(value bool) object.Object {
+	if value {
+		return TRUE
+	} else {
+		return FALSE
+	}
 }

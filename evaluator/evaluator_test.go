@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"fmt"
 	"testing"
 
 	"monkey/lexer"
@@ -30,11 +31,13 @@ func TestEvalBooleanExpression(t *testing.T) {
 		input    string
 		expected bool
 	}{
-		{"true", true},
-		{"false", false},
+		{"true == true", true},
+		{"(1 < 2) == true", true},
+		{"(1 > 2) == false", true},
 	}
 
-	for _, tt := range tests {
+	for index, tt := range tests {
+		fmt.Println(index, tt.input)
 		evaluated := test_eval(tt.input)
 		test_boolean_object(t, evaluated, tt.expected)
 	}
@@ -61,8 +64,20 @@ func TestEvalIntegerExpression(t *testing.T) {
 		expected int64
 	}{
 		{"5", 5},
-		{"-25", -25},
+		{"10", 10},
 		{"-5", -5},
+		{"-10", -10},
+		{"5 + 5 + 5 + 5 - 10", 10},
+		{"2 * 2 * 2 * 2 * 2", 32},
+		{"-50 + 100 + -50", 0},
+		{"5 * 2 + 10", 20},
+		{"5 + 2 * 10", 25},
+		{"20 + 2 * -10", 0},
+		{"50 / 2 * 2 + 10", 60},
+		{"2 * (5 + 10)", 30},
+		{"3 * 3 * 3 + 10", 37},
+		{"3 * (3 * 3) + 10", 37},
+		{"(5 + 10 * 2 + 15 / 3) * 2 + -10", 50},
 	}
 
 	for _, tt := range tests {

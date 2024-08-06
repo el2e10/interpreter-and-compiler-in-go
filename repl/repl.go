@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+
 	"monkey/evaluator"
 	"monkey/lexer"
 	"monkey/parser"
@@ -11,18 +12,36 @@ import (
 
 const PROMPT = ">> "
 
-func Start(in io.Reader, out io.Writer) {
+const MONKEY_FACE = `            
+   .--.  .-"     "-.  .--.
+  / .. \/  .-. .-.  \/ .. \
+ | |  '|  /   Y   \  |'  | |
+ | \   \  \ 0 | 0 /  /   / |
+  \ '- ,\.-"""""""-./, -' /
+   ''-' /_   ^ ^   _\ '-''
+       |  \._   _./  |
+       \   \ '~' /   /
+        '._ '-=-' _.'
+           '-----'
+`
 
+func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 
 	for {
-		fmt.Fprintf(out, PROMPT)
+		fmt.Fprint(out, PROMPT)
 		scanned := scanner.Scan()
 		if !scanned {
 			return
 		}
 
 		line := scanner.Text()
+
+		if line == "exit" {
+			print_end_message(out)
+			break
+		}
+
 		lxr := lexer.New(line)
 		prsr := parser.New(lxr)
 
@@ -40,27 +59,18 @@ func Start(in io.Reader, out io.Writer) {
 		}
 
 	}
+}
 
+func print_end_message(out io.Writer) {
+	io.WriteString(out, MONKEY_FACE)
+	io.WriteString(out, "Good Bye!!\n")
 }
 
 func print_parser_errors(out io.Writer, errors []string) {
-	const MONKEY_FACE = `            
-   .--.  .-"     "-.  .--.
-  / .. \/  .-. .-.  \/ .. \
- | |  '|  /   Y   \  |'  | |
- | \   \  \ 0 | 0 /  /   / |
-  \ '- ,\.-"""""""-./, -' /
-   ''-' /_   ^ ^   _\ '-''
-       |  \._   _./  |
-       \   \ '~' /   /
-        '._ '-=-' _.'
-           '-----'
-`
-
 	io.WriteString(out, MONKEY_FACE)
 	io.WriteString(out, "Woops! We ran into some monkey business here!\n")
 	io.WriteString(out, " parser errors:\n")
 	for _, msg := range errors {
-		io.WriteString(out, "\t"+msg+"\n")
+		io.WriteString(out, "- "+msg+"\n")
 	}
 }
