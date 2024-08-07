@@ -15,7 +15,7 @@ func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
 
 	case *ast.Program:
-		return eval_statement(node.Statements)
+		return eval_program(node.Statements)
 
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression)
@@ -27,19 +27,53 @@ func Eval(node ast.Node) object.Object {
 		return native_bool_to_boolean_object(node.Value)
 
 	case *ast.PrefixExpression:
-		{
-			right := Eval(node.Right)
-			return eval_prefix_expression(node.Operator, right)
-		}
+		right := Eval(node.Right)
+		return eval_prefix_expression(node.Operator, right)
+
 	case *ast.InfixExpression:
-		{
-			right := Eval(node.Right)
-			left := Eval(node.Left)
-			return eval_infix_expression(node.Operator, left, right)
-		}
+		right := Eval(node.Right)
+		left := Eval(node.Left)
+		return eval_infix_expression(node.Operator, left, right)
+
+	case *ast.BlockStatement:
+		return eval_block_statement(node)
+
+	case *ast.IfExpression:
+		return eval_if_expression(node)
+
+	case *ast.ReturnStatement:
+		val := Eval(node.Value)
+		return &object.ReturnValue{Value: val}
 	}
 
 	return nil
+}
+
+func eval_if_expression(ie *ast.IfExpression) object.Object {
+	condition := Eval(ie.Condition)
+
+	if is_truthy(condition) {
+		return Eval(ie.Consequence)
+	} else if ie.Alternative != nil {
+		return Eval(ie.Alternative)
+	} else {
+		return NULL
+	}
+}
+
+func is_truthy(obj object.Object) bool {
+	switch obj {
+
+	case NULL:
+		return false
+	case TRUE:
+		return true
+	case FALSE:
+		return false
+	default:
+		return true
+
+	}
 }
 
 func eval_infix_expression(operator string, left object.Object, right object.Object) object.Object {
@@ -128,13 +162,29 @@ func eval_bang_operator(obj object.Object) object.Object {
 	}
 }
 
-func eval_statement(stmts []ast.Statement) object.Object {
+func eval_program(stmts []ast.Statement) object.Object {
 	var result object.Object
 
 	for _, statement := range stmts {
 		result = Eval(statement)
+		if return_value, ok := result.(*object.ReturnValue); ok {
+			return return_value.Value
+		}
 	}
 
+	return result
+}
+
+func eval_block_statement(block *ast.BlockStatement) object.Object {
+	var result object.Object
+
+	for _, statement := range block.Statements {
+		result = Eval(statement)
+
+		if result != nil && result.Type() == object.RETURN_VALUE_OBJ {
+			return result
+		}
+	}
 	return result
 }
 
