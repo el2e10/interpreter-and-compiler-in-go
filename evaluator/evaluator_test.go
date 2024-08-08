@@ -8,6 +8,62 @@ import (
 	"monkey/parser"
 )
 
+func TestErrorHandling(t *testing.T) {
+	tests := []struct {
+		input           string
+		expectedMessage string
+	}{
+		{
+			"5 + true;",
+			"type mismatch: INTEGER + BOOLEAN",
+		},
+		{
+			"5 + true; 5;",
+			"type mismatch: INTEGER + BOOLEAN",
+		},
+		{
+			"-true",
+			"unknown operator: -BOOLEAN",
+		},
+		{
+			"true + false;",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			"5; true + false; 5",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			"if (10 > 1) { true + false; }",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			` if (10 > 1) {
+  		if (10 > 1) {
+    		return true + false;
+		}
+		return 1; }`,
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+	}
+
+	for index, tt := range tests {
+
+		evaluated := test_eval(tt.input)
+		error_obj, ok := evaluated.(*object.Error)
+
+		if !ok {
+			t.Errorf("%d No error object returned. got=%T (%+v)", index, evaluated, evaluated)
+			continue
+		}
+
+		if error_obj.Message != tt.expectedMessage {
+			t.Errorf("Wrong error message was returned expected=%q, got=%q", tt.expectedMessage, error_obj.Message)
+		}
+
+	}
+}
+
 func TestReturnStatements(t *testing.T) {
 	tests := []struct {
 		input    string
