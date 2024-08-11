@@ -8,6 +8,22 @@ import (
 	"monkey/parser"
 )
 
+func TestLetStatements(t *testing.T) {
+	tests := []struct {
+		input  string
+		output int64
+	}{
+		{"let a = 5; a;", 5},
+		{"let a = 5 * 5; a;", 25},
+		{"let a = 5; let b = a; b;", 5},
+		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+	}
+
+	for _, test := range tests {
+		test_integer_object(t, test_eval(test.input), test.output)
+	}
+}
+
 func TestErrorHandling(t *testing.T) {
 	tests := []struct {
 		input           string
@@ -45,6 +61,7 @@ func TestErrorHandling(t *testing.T) {
 		return 1; }`,
 			"unknown operator: BOOLEAN + BOOLEAN",
 		},
+		{"foobar", "identifier not found: foobar"},
 	}
 
 	for index, tt := range tests {
@@ -197,8 +214,9 @@ func test_eval(input string) object.Object {
 	l := lexer.New(input)
 	prsr := parser.New(l)
 	prgm := prsr.ParseProgram()
+	env := object.NewEnvironment()
 
-	return Eval(prgm)
+	return Eval(prgm, env)
 }
 
 func test_integer_object(t *testing.T, obj object.Object, expected int64) bool {

@@ -12,6 +12,25 @@ const (
 	ERROR_OBJ        = "ERROR"
 )
 
+type Environment struct {
+	store map[string]Object
+}
+
+func NewEnvironment() *Environment {
+	s := make(map[string]Object)
+	return &Environment{store: s}
+}
+
+func (e *Environment) Get(name string) (Object, bool) {
+	env, ok := e.store[name]
+	return env, ok
+}
+
+func (e *Environment) Set(name string, val Object) Object {
+	e.store[name] = val
+	return val
+}
+
 type ObjectType string
 
 type Object interface {
