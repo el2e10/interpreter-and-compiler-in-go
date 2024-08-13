@@ -22,6 +22,9 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression, env)
 
+	case *ast.StringLiteral:
+		return &object.String{Value: node.Value}
+
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
 
@@ -70,9 +73,66 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 
+	case *ast.FunctionLiteral:
+		params := node.Parameters
+		body := node.Body
+		return &object.Function{Parameters: params, Body: body, Env: env}
+
+	case *ast.CallExpression:
+		function := Eval(node.Function, env)
+		if isError(function) {
+			return function
+		}
+		args := evalExpression(node.Arguments, env)
+		if len(args) == 1 && isError(args[0]) {
+			return args[0]
+		}
+
+		return applyFunction(function, args)
+
 	}
 
 	return nil
+}
+
+func applyFunction(fn object.Object, args []object.Object) object.Object {
+	function, ok := fn.(*object.Function)
+	if !ok {
+		return newError("not a function %s", fn.Type())
+	}
+
+	extendedEnv := extendEnvironment(function, args)
+	evaluated := Eval(function.Body, extendedEnv)
+	return unwrapReturnValue(evaluated)
+}
+
+func unwrapReturnValue(obj object.Object) object.Object {
+	if returnValue, ok := obj.(*object.ReturnValue); ok {
+		return returnValue.Value
+	}
+	return obj
+}
+
+func extendEnvironment(fn *object.Function, args []object.Object) *object.Environment {
+	env := object.NewEnclosedEnvironment(fn.Env)
+
+	for paramId, param := range fn.Parameters {
+		env.Set(param.Value, args[paramId])
+	}
+
+	return env
+}
+
+func evalExpression(exps []ast.Expression, env *object.Environment) []object.Object {
+	var result []object.Object
+	for _, e := range exps {
+		evaluated := Eval(e, env)
+		if isError(evaluated) {
+			return []object.Object{evaluated}
+		}
+		result = append(result, evaluated)
+	}
+	return result
 }
 
 func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
@@ -116,6 +176,8 @@ func is_truthy(obj object.Object) bool {
 
 func eval_infix_expression(operator string, left object.Object, right object.Object) object.Object {
 	switch {
+	case left.Type() == object.STRING_OBJ && right.Type() == object.STRING_OBJ:
+		return eval_string_infix_expression(operator, left, right)
 	case left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ:
 		return eval_integer_infix_expression(operator, left, right)
 	case operator == "==":
@@ -161,6 +223,16 @@ func eval_integer_infix_expression(operator string, left object.Object, right ob
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
+}
+
+func eval_string_infix_expression(operator string, left object.Object, right object.Object) object.Object {
+	left_value := left.(*object.String).Value
+	right_value := right.(*object.String).Value
+
+	if operator == "+"{
+		return &object.String{Value: left_value  + right_value}
+	}
+	return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 }
 
 func eval_prefix_expression(operator string, right object.Object) object.Object {

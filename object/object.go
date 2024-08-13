@@ -1,7 +1,11 @@
 package object
 
 import (
+	"bytes"
 	"fmt"
+	"strings"
+
+	"monkey/ast"
 )
 
 const (
@@ -10,25 +14,33 @@ const (
 	NULL_OBJ         = "NULL"
 	RETURN_VALUE_OBJ = "RETURN_VALUE"
 	ERROR_OBJ        = "ERROR"
+	FUNCTION_OBJ     = "FUNCTION"
+	STRING_OBJ       = "STRING"
 )
 
-type Environment struct {
-	store map[string]Object
+type Function struct {
+	Parameters []*ast.Identifier
+	Body       *ast.BlockStatement
+	Env        *Environment
 }
 
-func NewEnvironment() *Environment {
-	s := make(map[string]Object)
-	return &Environment{store: s}
-}
+func (f *Function) Type() ObjectType { return FUNCTION_OBJ }
 
-func (e *Environment) Get(name string) (Object, bool) {
-	env, ok := e.store[name]
-	return env, ok
-}
+func (f *Function) Inspect() string {
+	var out bytes.Buffer
 
-func (e *Environment) Set(name string, val Object) Object {
-	e.store[name] = val
-	return val
+	params := []string{}
+	for _, p := range f.Parameters {
+		params = append(params, p.String())
+	}
+
+	out.WriteString("fn(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString("){\n")
+	out.WriteString(f.Body.String())
+	out.WriteString("\n}")
+
+	return out.String()
 }
 
 type ObjectType string
@@ -51,6 +63,18 @@ type ReturnValue struct {
 
 func (rv *ReturnValue) Type() ObjectType { return RETURN_VALUE_OBJ }
 func (rv *ReturnValue) Inspect() string  { return rv.Value.Inspect() }
+
+type String struct {
+	Value string
+}
+
+func (s *String) Inspect() string {
+	return fmt.Sprint(s.Value)
+}
+
+func (s *String) Type() ObjectType{
+	return STRING_OBJ
+}
 
 type Integer struct {
 	Value int64

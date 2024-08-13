@@ -1,12 +1,12 @@
 package lexer
 
 import (
-	"monkey/token"
 	"testing"
+
+	"monkey/token"
 )
 
 func TestNextToken(t *testing.T) {
-
 	input := `let five = 5;
 	let ten = 10;
    	let add = fn(x, y) {
@@ -22,6 +22,8 @@ func TestNextToken(t *testing.T) {
 	}
 	10 == 10; 
 	10 != 9;
+	"foo bar"
+	"foobar"
 	`
 
 	tests := []struct {
@@ -101,6 +103,8 @@ func TestNextToken(t *testing.T) {
 		{token.NOT_EQ, "!="},
 		{token.INT, "9"},
 		{token.SEMICOLON, ";"},
+		{token.STRING, "foo bar"},
+		{token.STRING, "foobar"},
 		{token.EOF, ""},
 	}
 
@@ -117,5 +121,4 @@ func TestNextToken(t *testing.T) {
 				i, tt.expectedLiteral, tok.Literal)
 		}
 	}
-
 }

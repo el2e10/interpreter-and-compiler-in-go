@@ -18,7 +18,6 @@ func New(code string) *Lexer {
 }
 
 func (lexer *Lexer) NextToken() token.Token {
-
 	var tkn token.Token
 
 	lexer.skip_whitespace()
@@ -64,6 +63,10 @@ func (lexer *Lexer) NextToken() token.Token {
 		tkn = new_token(token.GT, lexer.current_char)
 	case '<':
 		tkn = new_token(token.LT, lexer.current_char)
+	case '"':
+		s := lexer.readString()
+		tkn = token.Token{Type: token.STRING, Literal: s}
+
 	case 0:
 		tkn.Literal = ""
 		tkn.Type = token.EOF
@@ -86,12 +89,21 @@ func (lexer *Lexer) NextToken() token.Token {
 	return tkn
 }
 
-func (lexer *Lexer) skip_whitespace() {
+func (lexer *Lexer) readString() string {
+	start_position := lexer.read_position
+	for {
+		lexer.read_char()
+		if lexer.current_char == '"' || lexer.current_char == 0 {
+			break
+		}
+	}
+	return lexer.input[start_position:lexer.position]
+}
 
+func (lexer *Lexer) skip_whitespace() {
 	for lexer.current_char == ' ' || lexer.current_char == '\t' || lexer.current_char == '\n' || lexer.current_char == '\r' {
 		lexer.read_char()
 	}
-
 }
 
 func (lexer *Lexer) read_identifier() string {
@@ -103,13 +115,11 @@ func (lexer *Lexer) read_identifier() string {
 }
 
 func (lexer *Lexer) read_digit() string {
-
 	start_position := lexer.position
 	for is_digit(lexer.current_char) {
 		lexer.read_char()
 	}
 	return lexer.input[start_position:lexer.position]
-
 }
 
 func is_letter(char byte) bool {

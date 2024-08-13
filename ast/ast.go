@@ -2,8 +2,9 @@ package ast
 
 import (
 	"bytes"
-	"monkey/token"
 	"strings"
+
+	"monkey/token"
 )
 
 type Node interface {
@@ -34,7 +35,6 @@ type CallExpression struct {
 func (ce *CallExpression) expressionNode()      {}
 func (ce *CallExpression) TokenLiteral() string { return ce.Token.Literal }
 func (ce *CallExpression) String() string {
-
 	var out bytes.Buffer
 
 	args := []string{}
@@ -49,7 +49,6 @@ func (ce *CallExpression) String() string {
 	out.WriteString(")")
 
 	return out.String()
-
 }
 
 type FunctionLiteral struct {
@@ -61,7 +60,6 @@ type FunctionLiteral struct {
 func (fl *FunctionLiteral) expressionNode()      {}
 func (fl *FunctionLiteral) TokenLiteral() string { return fl.Token.Literal }
 func (fl *FunctionLiteral) String() string {
-
 	var out bytes.Buffer
 
 	params := []string{}
@@ -88,7 +86,6 @@ type IfExpression struct {
 func (i *IfExpression) expressionNode()      {}
 func (i *IfExpression) TokenLiteral() string { return i.Token.Literal }
 func (i *IfExpression) String() string {
-
 	var out bytes.Buffer
 
 	out.WriteString("if")
@@ -102,7 +99,6 @@ func (i *IfExpression) String() string {
 	}
 
 	return out.String()
-
 }
 
 type BlockStatement struct {
@@ -113,7 +109,6 @@ type BlockStatement struct {
 func (bs *BlockStatement) statementNode()       {}
 func (bs *BlockStatement) TokenLiteral() string { return bs.Token.Literal }
 func (bs *BlockStatement) String() string {
-
 	var out bytes.Buffer
 
 	for _, stmt := range bs.Statements {
@@ -150,6 +145,15 @@ func (i *IntegerLiteral) expressionNode()      {}
 func (i *IntegerLiteral) TokenLiteral() string { return i.Token.Literal }
 func (i *IntegerLiteral) String() string       { return i.Token.Literal }
 
+type StringLiteral struct {
+	Token token.Token
+	Value string
+}
+
+func (s *StringLiteral) expressionNode()      {}
+func (s *StringLiteral) TokenLiteral() string { return s.Token.Literal }
+func (s *StringLiteral) String() string       { return s.Token.Literal }
+
 // For parsing expressions like x + 10
 type ExpressionStatement struct {
 	Token      token.Token // Storing first token
@@ -160,6 +164,7 @@ func (es *ExpressionStatement) statementNode() {}
 func (es *ExpressionStatement) TokenLiteral() string {
 	return es.Token.Literal
 }
+
 func (es *ExpressionStatement) String() string {
 	if es.Expression != nil {
 		return es.Expression.String()
@@ -177,8 +182,8 @@ func (ls *LetStatement) statementNode() {}
 func (ls *LetStatement) TokenLiteral() string {
 	return ls.Token.Literal
 }
-func (ls *LetStatement) String() string {
 
+func (ls *LetStatement) String() string {
 	var out bytes.Buffer
 	out.WriteString(ls.TokenLiteral() + " ")
 	out.WriteString(ls.Name.String())
@@ -191,7 +196,6 @@ func (ls *LetStatement) String() string {
 	out.WriteString(";")
 
 	return out.String()
-
 }
 
 type ReturnStatement struct {
@@ -203,8 +207,8 @@ func (rs *ReturnStatement) statementNode() {}
 func (rs *ReturnStatement) TokenLiteral() string {
 	return rs.Token.Literal
 }
-func (rs *ReturnStatement) String() string {
 
+func (rs *ReturnStatement) String() string {
 	var out bytes.Buffer
 
 	out.WriteString(rs.TokenLiteral() + " ")
@@ -236,7 +240,6 @@ func (ie *InfixExpression) String() string {
 	out.WriteString(")")
 
 	return out.String()
-
 }
 
 type PrefixExpression struct {
@@ -260,7 +263,6 @@ func (pe *PrefixExpression) String() string {
 }
 
 func (p *Program) TokenLiteral() string {
-
 	if len(p.Statements) > 0 {
 		return p.Statements[0].TokenLiteral()
 	} else {
@@ -275,5 +277,4 @@ func (p *Program) String() string {
 		out.WriteString(s.String())
 	}
 	return out.String()
-
 }
