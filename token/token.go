@@ -7,6 +7,9 @@ const (
 	IDENT = "IDENT" // Identifiers like function name, variable names
 	INT   = "INT"   // Integers
 
+	LBRACKET = "["
+	RBRACKET = "["
+
 	ASSIGN   = "="
 	EQ       = "=="
 	NOT_EQ   = "!="
@@ -36,7 +39,7 @@ const (
 	FALSE    = "FALSE"
 	RETURN   = "RETURN"
 
-	STRING = "STRING" 
+	STRING = "STRING"
 )
 
 var keywords = map[string]TokenType{

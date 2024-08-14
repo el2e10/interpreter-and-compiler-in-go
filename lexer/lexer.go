@@ -66,11 +66,13 @@ func (lexer *Lexer) NextToken() token.Token {
 	case '"':
 		s := lexer.readString()
 		tkn = token.Token{Type: token.STRING, Literal: s}
-
 	case 0:
 		tkn.Literal = ""
 		tkn.Type = token.EOF
-
+	case '[':
+		tkn = new_token(token.LBRACKET, lexer.current_char)
+	case ']':
+		tkn = new_token(token.RBRACKET, lexer.current_char)
 	default:
 		if is_letter(lexer.current_char) {
 			tkn.Literal = lexer.read_identifier()

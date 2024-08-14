@@ -75,6 +75,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.register_prefix(token.TRUE, p.parse_boolean)
 	p.register_prefix(token.FALSE, p.parse_boolean)
 	p.register_prefix(token.LPAREN, p.parse_grouped_expression)
+	p.register_prefix(token.LBRACKET, p.parseArrayLiterals)
 	p.register_prefix(token.IF, p.parse_if_expression)
 	p.register_prefix(token.FUNCTION, p.parse_function_expression)
 
@@ -92,9 +93,40 @@ func New(l *lexer.Lexer) *Parser {
 	return p
 }
 
+func (p *Parser) parseArrayLiterals() ast.Expression {
+	array := &ast.ArrayLiteral{Token: p.current_token}
+	array.Elements = p.parseExpressionList(token.RBRACKET)
+	return array
+}
+
+func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
+	list := []ast.Expression{}
+
+	if p.peek_token_is(end) {
+		p.next_token()
+		return list
+	}
+
+	p.next_token()
+	list = append(list, p.parse_expression(LOWEST))
+
+	for p.peek_token_is(token.COMMA) {
+		p.next_token()
+		p.next_token()
+
+		list = append(list, p.parse_expression(LOWEST))
+	}
+
+	if !p.expect_peek(end) {
+		return nil
+	}
+
+	return list
+}
+
 func (p *Parser) parse_call_expression(function ast.Expression) ast.Expression {
 	expression := &ast.CallExpression{Token: p.current_token, Function: function}
-	expression.Arguments = p.parse_call_arguments()
+	expression.Arguments = p.parseExpressionList(token.RPAREN)
 
 	return expression
 }

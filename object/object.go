@@ -16,7 +16,17 @@ const (
 	ERROR_OBJ        = "ERROR"
 	FUNCTION_OBJ     = "FUNCTION"
 	STRING_OBJ       = "STRING"
+	BUILTIN_OBJ      = "BUILTIN"
 )
+
+type BuiltinFunction func(args ...Object) Object
+
+type Builtin struct {
+	Fn BuiltinFunction
+}
+
+func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
+func (b *Builtin) Inspect() string  { return "builtin function" }
 
 type Function struct {
 	Parameters []*ast.Identifier
@@ -72,7 +82,7 @@ func (s *String) Inspect() string {
 	return fmt.Sprint(s.Value)
 }
 
-func (s *String) Type() ObjectType{
+func (s *String) Type() ObjectType {
 	return STRING_OBJ
 }
 
