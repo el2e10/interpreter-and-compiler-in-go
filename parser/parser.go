@@ -18,6 +18,7 @@ const (
 	PRODUCT
 	PREFIX
 	CALL
+	INDEX
 )
 
 var precedences = map[token.TokenType]int{
@@ -30,6 +31,7 @@ var precedences = map[token.TokenType]int{
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
 	token.LPAREN:   CALL,
+	token.LBRACKET: INDEX,
 }
 
 func (p *Parser) peek_precedence() int {
@@ -80,6 +82,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.register_prefix(token.FUNCTION, p.parse_function_expression)
 
 	p.infix_parse_fns = make(map[token.TokenType]infix_parse_fn)
+	p.register_infix(token.LBRACKET, p.parseIndexExpression)
 	p.register_infix(token.LPAREN, p.parse_call_expression)
 	p.register_infix(token.PLUS, p.parse_infix_expression)
 	p.register_infix(token.MINUS, p.parse_infix_expression)
@@ -91,6 +94,19 @@ func New(l *lexer.Lexer) *Parser {
 	p.register_infix(token.GT, p.parse_infix_expression)
 
 	return p
+}
+
+func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	exp := &ast.IndexExpression{Token: p.current_token, Left: left}
+
+	p.next_token()
+	exp.Index = p.parse_expression(LOWEST)
+
+	if !p.expect_peek(token.RBRACKET) {
+		return nil
+	}
+
+	return exp
 }
 
 func (p *Parser) parseArrayLiterals() ast.Expression {
@@ -113,7 +129,6 @@ func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 	for p.peek_token_is(token.COMMA) {
 		p.next_token()
 		p.next_token()
-
 		list = append(list, p.parse_expression(LOWEST))
 	}
 
@@ -336,25 +351,6 @@ func (p *Parser) parse_expression_statement() *ast.ExpressionStatement {
 	return statement
 }
 
-func (p *Parser) parse_integer_literal() ast.Expression {
-	literal := &ast.IntegerLiteral{Token: p.current_token}
-
-	value, error := strconv.ParseInt(p.current_token.Literal, 0, 64)
-	if error != nil {
-		msg := fmt.Sprintf("Could not parser %q as integer", p.current_token.Literal)
-		p.errors = append(p.errors, msg)
-		return nil
-	}
-
-	literal.Value = value
-	return literal
-}
-
-func (p *Parser) parseStringLiteral() ast.Expression {
-	literal := &ast.StringLiteral{Token: p.current_token, Value: p.current_token.Literal}
-	return literal
-}
-
 func (p *Parser) parse_expression(precedence int) ast.Expression {
 	prefix := p.prefix_parse_fns[p.current_token.Type]
 	if prefix == nil {
@@ -376,6 +372,25 @@ func (p *Parser) parse_expression(precedence int) ast.Expression {
 	}
 
 	return left_exp
+}
+
+func (p *Parser) parse_integer_literal() ast.Expression {
+	literal := &ast.IntegerLiteral{Token: p.current_token}
+
+	value, error := strconv.ParseInt(p.current_token.Literal, 0, 64)
+	if error != nil {
+		msg := fmt.Sprintf("Could not parser %q as integer", p.current_token.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	literal.Value = value
+	return literal
+}
+
+func (p *Parser) parseStringLiteral() ast.Expression {
+	literal := &ast.StringLiteral{Token: p.current_token, Value: p.current_token.Literal}
+	return literal
 }
 
 func (p *Parser) parse_prefix_expression() ast.Expression {

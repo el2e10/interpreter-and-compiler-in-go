@@ -8,7 +8,7 @@ const (
 	INT   = "INT"   // Integers
 
 	LBRACKET = "["
-	RBRACKET = "["
+	RBRACKET = "]"
 
 	ASSIGN   = "="
 	EQ       = "=="

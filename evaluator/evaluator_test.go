@@ -8,6 +8,24 @@ import (
 	"monkey/parser"
 )
 
+func TestArrayLiterals(t *testing.T) {
+	input := "[1, 2*2, 3+3]"
+
+	evaluated := test_eval(input)
+	result, ok := evaluated.(*object.Array)
+
+	if !ok {
+		t.Fatalf("object is not Array. got=%T (%+v)", evaluated, evaluated)
+	}
+	if len(result.Elements) != 3 {
+		t.Fatalf("array has wrong num of elements. got=%d",
+			len(result.Elements))
+	}
+	test_integer_object(t, result.Elements[0], 1)
+	test_integer_object(t, result.Elements[1], 4)
+	test_integer_object(t, result.Elements[2], 6)
+}
+
 func TestBuildinFunctions(t *testing.T) {
 	tests := []struct {
 		input    string
