@@ -47,6 +47,8 @@ func (lexer *Lexer) NextToken() token.Token {
 		tkn = new_token(token.COMMA, lexer.current_char)
 	case ';':
 		tkn = new_token(token.SEMICOLON, lexer.current_char)
+	case ':':
+		tkn = new_token(token.COLON, lexer.current_char)
 	case '!':
 		if lexer.peek_next_char() == '=' {
 			tkn.Type = token.NOT_EQ
