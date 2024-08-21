@@ -1,6 +1,9 @@
 package token
 
 const (
+
+	COMMENT = "#"
+
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF" // Represent end of the file
 

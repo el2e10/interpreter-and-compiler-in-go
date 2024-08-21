@@ -21,6 +21,7 @@ func (lexer *Lexer) NextToken() token.Token {
 	var tkn token.Token
 
 	lexer.skip_whitespace()
+	lexer.skipComment()
 
 	switch lexer.current_char {
 	case '=':
@@ -91,6 +92,15 @@ func (lexer *Lexer) NextToken() token.Token {
 
 	lexer.read_char()
 	return tkn
+}
+
+func (lexer *Lexer) skipComment() {
+	if lexer.current_char != '#' {
+		return
+	}
+	for lexer.current_char != 0 {
+		lexer.read_char()
+	}
 }
 
 func (lexer *Lexer) readString() string {
