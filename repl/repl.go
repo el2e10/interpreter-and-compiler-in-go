@@ -26,9 +26,12 @@ const MONKEY_FACE = `
            '-----'
 `
 
+
+
+
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
-	env := object.NewEnvironment()	
+	env := object.NewEnvironment()
 
 	for {
 		fmt.Fprint(out, PROMPT)
@@ -63,8 +66,8 @@ func Start(in io.Reader, out io.Writer) {
 	}
 }
 
+
 func print_end_message(out io.Writer) {
-	io.WriteString(out, MONKEY_FACE)
 	io.WriteString(out, "Good Bye!!\n")
 }
 

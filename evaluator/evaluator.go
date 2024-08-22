@@ -171,12 +171,20 @@ func evalHashIndexExpression(hash, index object.Object) object.Object {
 func evalArrayIndexExpression(array, index object.Object) object.Object {
 	arrayObject := array.(*object.Array)
 	idx := index.(*object.Integer).Value
-	max := int64(len(arrayObject.Elements) - 1)
+	max := int64(len(arrayObject.Elements))
 
-	if idx < 0 || idx > max {
+	if idx >= max {
 		return NULL
+	} else if idx >= 0 {
+		return arrayObject.Elements[idx]
+	} else {
+		// This condition is used for negative indexing like python
+		negativeIdx := max + idx
+		if negativeIdx < 0 {
+			return NULL
+		}
+		return arrayObject.Elements[negativeIdx]
 	}
-	return arrayObject.Elements[idx]
 }
 
 func applyFunction(fn object.Object, args []object.Object) object.Object {

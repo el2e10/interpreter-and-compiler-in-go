@@ -114,7 +114,7 @@ func TestArrayIndexExpression(t *testing.T) {
 			1,
 		},
 		{
-			"[1, 2, 3][1 + 1];",
+			"[1, 2, 3][-2 + 1];",
 			3,
 		},
 		{
@@ -131,11 +131,11 @@ func TestArrayIndexExpression(t *testing.T) {
 		},
 		{
 			"[1, 2, 3][-1]",
-			nil,
+			3,
 		},
 		{
-			"[1, 2, 3][3]",
-			nil,
+			"[1, 2, 3][-3]",
+			1,
 		},
 	}
 
