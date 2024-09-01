@@ -18,7 +18,7 @@ func NewEnvironment() *Environment {
 
 func (e *Environment) Get(name string) (Object, bool) {
 	env, ok := e.store[name]
-	if !ok && e.outer != nil{
+	if !ok && e.outer != nil {
 		return e.outer.Get(name)
 	}
 	return env, ok
