@@ -28,6 +28,7 @@ func TestIntegerArithmetic(t *testing.T) {
 			},
 		},
 	}
+	//fmt.Print(byte(code.OpConstant))
 	runCompilerTests(t, tests)
 }
 
