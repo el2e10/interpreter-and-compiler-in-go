@@ -25,10 +25,11 @@ func TestIntegerArithmetic(t *testing.T) {
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
+				code.Make(code.OpAdd),
 			},
 		},
 	}
-	//fmt.Print(byte(code.OpConstant))
+	// fmt.Print(byte(code.OpConstant))
 	runCompilerTests(t, tests)
 }
 
@@ -108,7 +109,7 @@ func testIntegerObject(expected int64, actual object.Object) error {
 		return fmt.Errorf("object is not Integer. got=%T (%+v)", actual, actual)
 	}
 
-	if result.Value != expected{
+	if result.Value != expected {
 		return fmt.Errorf("object has wrong value. got=%d, want=%d", result.Value, expected)
 	}
 

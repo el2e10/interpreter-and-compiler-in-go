@@ -1,6 +1,8 @@
 package compiler
 
 import (
+	"fmt"
+
 	"monkey/ast"
 	"monkey/code"
 	"monkey/object"
@@ -49,6 +51,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 
+		switch node.Operator {
+		case "+":
+			c.emit(code.OpAdd)
+		default:
+			return fmt.Errorf("unkown operator %s", node.Operator)
+		}
+
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
 		c.emit(code.OpConstant, c.addConstant(integer))
@@ -64,7 +73,7 @@ func (c *Compiler) Bytecode() *Bytecode {
 	}
 }
 
-func (c *Compiler) emit(op code.Opcode, operands ...int) int{
+func (c *Compiler) emit(op code.Opcode, operands ...int) int {
 	ins := code.Make(op, operands...)
 	pos := c.addInstruction(ins)
 	return pos
