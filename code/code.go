@@ -9,6 +9,7 @@ import (
 const (
 	OpConstant Opcode = iota
 	OpAdd
+	OpPop // Remove the top element from the stack
 )
 
 type Instructions []byte
@@ -23,6 +24,7 @@ type Definition struct {
 var definitions = map[Opcode]*Definition{
 	OpConstant: {"OpConstant", []int{2}},
 	OpAdd:      {"OpAdd", []int{}},
+	OpPop:      {"OpPop", []int{}},
 }
 
 func (ins Instructions) String() string {
