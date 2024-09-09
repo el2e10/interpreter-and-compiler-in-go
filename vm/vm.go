@@ -42,7 +42,6 @@ func (vm *VM) StackTop() object.Object {
 }
 
 func (vm *VM) Run() error {
-	fmt.Println(vm.instructions)
 	for ip := 0; ip < len(vm.instructions); ip++ {
 		op := code.Opcode(vm.instructions[ip])
 
@@ -51,6 +50,16 @@ func (vm *VM) Run() error {
 			constIndex := code.ReadUint16(vm.instructions[ip+1:])
 			ip += 2
 			err := vm.push(vm.constants[constIndex])
+			if err != nil {
+				return err
+			}
+		case code.OpBang:
+			err := vm.executeBangOperator()
+			if err != nil {
+				return err
+			}
+		case code.OpMinus:
+			err := vm.executeMinusOperator()
 			if err != nil {
 				return err
 			}
@@ -82,6 +91,30 @@ func (vm *VM) Run() error {
 	return nil
 }
 
+func (vm *VM) executeMinusOperator() error {
+	operand := vm.pop()
+
+	if operand.Type() != object.INTEGER_OBJ {
+		return fmt.Errorf("unspported type for negation %s", operand.Type())
+	}
+
+	value := operand.(*object.Integer).Value
+	return vm.push(&object.Integer{Value: -value})
+}
+
+func (vm *VM) executeBangOperator() error {
+	operand := vm.pop()
+
+	switch operand {
+	case True:
+		return vm.push(False)
+	case False:
+		return vm.push(True)
+	default:
+		return vm.push(False)
+	}
+}
+
 func (vm *VM) executeComparison(op code.Opcode) error {
 	right := vm.pop()
 	left := vm.pop()
@@ -110,9 +143,9 @@ func (vm *VM) executeIntegerComparison(op code.Opcode, left, right object.Object
 	case code.OpNotEqual:
 		return vm.push(nativeBoolToBooleanObject(rightValue != leftValue))
 	case code.OpGreaterThan:
-		return vm.push(nativeBoolToBooleanObject(rightValue > leftValue))
+		return vm.push(nativeBoolToBooleanObject(leftValue > rightValue))
 	case code.OpLessThan:
-		return vm.push(nativeBoolToBooleanObject(rightValue < leftValue))
+		return vm.push(nativeBoolToBooleanObject(leftValue < rightValue))
 	default:
 		return fmt.Errorf("unkown operator: %d", op)
 	}
@@ -150,7 +183,6 @@ func (vm *VM) executeBinaryIntegerOperation(op code.Opcode, left, right object.O
 	default:
 		return fmt.Errorf("unknown integer operation: %d", op)
 	}
-	fmt.Println(leftValue, rightValue, result)
 
 	return vm.push(&object.Integer{Value: result})
 }

@@ -18,6 +18,8 @@ const (
 	OpNotEqual
 	OpGreaterThan
 	OpLessThan
+	OpMinus // negation operator
+	OpBang
 	OpPop // Remove the top element from the stack
 )
 
@@ -41,7 +43,9 @@ var definitions = map[Opcode]*Definition{
 	OpPop:         {"OpPop", []int{}},
 	OpEqual:       {"OpEqual", []int{}},
 	OpNotEqual:    {"OpNotEqual", []int{}},
-	OpLessThan: {"OpLessThan", []int{}},
+	OpLessThan:    {"OpLessThan", []int{}},
+	OpMinus:    {"OpMinus", []int{}},
+	OpBang:    {"OpBang", []int{}},
 	OpGreaterThan: {"OpGreaterThan", []int{}},
 }
 
