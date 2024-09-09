@@ -14,6 +14,10 @@ const (
 	OpDiv
 	OpTrue
 	OpFalse
+	OpEqual
+	OpNotEqual
+	OpGreaterThan
+	OpLessThan
 	OpPop // Remove the top element from the stack
 )
 
@@ -27,14 +31,18 @@ type Definition struct {
 }
 
 var definitions = map[Opcode]*Definition{
-	OpConstant: {"OpConstant", []int{2}},
-	OpAdd:      {"OpAdd", []int{}},
-	OpSub:      {"OpSub", []int{}},
-	OpMul:      {"OpMul", []int{}},
-	OpDiv:      {"OpDiv", []int{}},
-	OpTrue:     {"OpTrue", []int{}},
-	OpFalse:    {"OpFalse", []int{}},
-	OpPop:      {"OpPop", []int{}},
+	OpConstant:    {"OpConstant", []int{2}},
+	OpAdd:         {"OpAdd", []int{}},
+	OpSub:         {"OpSub", []int{}},
+	OpMul:         {"OpMul", []int{}},
+	OpDiv:         {"OpDiv", []int{}},
+	OpTrue:        {"OpTrue", []int{}},
+	OpFalse:       {"OpFalse", []int{}},
+	OpPop:         {"OpPop", []int{}},
+	OpEqual:       {"OpEqual", []int{}},
+	OpNotEqual:    {"OpNotEqual", []int{}},
+	OpLessThan: {"OpLessThan", []int{}},
+	OpGreaterThan: {"OpGreaterThan", []int{}},
 }
 
 func (ins Instructions) String() string {
