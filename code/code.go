@@ -21,6 +21,8 @@ const (
 	OpMinus // negation operator
 	OpBang
 	OpPop // Remove the top element from the stack
+	OpJumpNotTruthy
+	OpJump
 )
 
 type Instructions []byte
@@ -33,20 +35,22 @@ type Definition struct {
 }
 
 var definitions = map[Opcode]*Definition{
-	OpConstant:    {"OpConstant", []int{2}},
-	OpAdd:         {"OpAdd", []int{}},
-	OpSub:         {"OpSub", []int{}},
-	OpMul:         {"OpMul", []int{}},
-	OpDiv:         {"OpDiv", []int{}},
-	OpTrue:        {"OpTrue", []int{}},
-	OpFalse:       {"OpFalse", []int{}},
-	OpPop:         {"OpPop", []int{}},
-	OpEqual:       {"OpEqual", []int{}},
-	OpNotEqual:    {"OpNotEqual", []int{}},
-	OpLessThan:    {"OpLessThan", []int{}},
-	OpMinus:    {"OpMinus", []int{}},
-	OpBang:    {"OpBang", []int{}},
-	OpGreaterThan: {"OpGreaterThan", []int{}},
+	OpConstant:      {"OpConstant", []int{2}},
+	OpAdd:           {"OpAdd", []int{}},
+	OpSub:           {"OpSub", []int{}},
+	OpMul:           {"OpMul", []int{}},
+	OpDiv:           {"OpDiv", []int{}},
+	OpTrue:          {"OpTrue", []int{}},
+	OpFalse:         {"OpFalse", []int{}},
+	OpPop:           {"OpPop", []int{}},
+	OpEqual:         {"OpEqual", []int{}},
+	OpNotEqual:      {"OpNotEqual", []int{}},
+	OpLessThan:      {"OpLessThan", []int{}},
+	OpMinus:         {"OpMinus", []int{}},
+	OpBang:          {"OpBang", []int{}},
+	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
+	OpJump:          {"OpJump", []int{2}},
+	OpGreaterThan:   {"OpGreaterThan", []int{}},
 }
 
 func (ins Instructions) String() string {
