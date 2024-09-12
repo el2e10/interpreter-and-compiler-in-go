@@ -20,14 +20,18 @@ type compilerTestCase struct {
 func TestConditionals(t *testing.T) {
 	tests := []compilerTestCase{
 		{
-			input:             `if (true) {10}; 3333;`,
-			expectedConstants: []interface{}{10, 3333},
+			input: `
+if (true) { 10 } else { 20 }; 3333;
+`,
+			expectedConstants: []interface{}{10, 20, 3333},
 			expectedInstructions: []code.Instructions{
 				code.Make(code.OpTrue),
-				code.Make(code.OpJumpNotTruthy, 7), //7 because it will be the stack index of things to execute if condition was false
+				code.Make(code.OpJumpNotTruthy, 10),
 				code.Make(code.OpConstant, 0),
-				code.Make(code.OpPop),
+				code.Make(code.OpJump, 13),
 				code.Make(code.OpConstant, 1),
+				code.Make(code.OpPop),
+				code.Make(code.OpConstant, 2),
 				code.Make(code.OpPop),
 			},
 		},

@@ -61,7 +61,6 @@ func (c *Compiler) Compile(node ast.Node) error {
 
 		// 9999 is a temporary value. The value will be determined later when we compile the consequence block
 		jumpNotTruthyPos := c.emit(code.OpJumpNotTruthy, 9999)
-
 		err = c.Compile(node.Consequence)
 		if err != nil {
 			return err
@@ -71,8 +70,28 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.removeLastPop()
 		}
 
-		afterConsequencePos := len(c.instructions)
-		c.changeOperand(jumpNotTruthyPos, afterConsequencePos)//Replace the temporary operand(9999) with the correct one
+		if node.Alternative == nil {
+			afterConsequencePos := len(c.instructions)
+			c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+		} else {
+			jumpPos := c.emit(code.OpJump, 9999)
+
+			afterConsequencePos := len(c.instructions)
+			c.changeOperand(jumpNotTruthyPos, afterConsequencePos)
+
+			err := c.Compile(node.Alternative)
+			if err != nil {
+				return err
+			}
+
+			if c.lastInstructionIsPop() {
+				c.removeLastPop()
+			}
+
+			afterAlternativePos := len(c.instructions)
+			c.changeOperand(jumpPos, afterAlternativePos)
+
+		}
 
 	case *ast.ExpressionStatement:
 		err := c.Compile(node.Expression)
