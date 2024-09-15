@@ -23,6 +23,7 @@ const (
 	OpPop // Remove the top element from the stack
 	OpJumpNotTruthy
 	OpJump
+	OpNull
 )
 
 type Instructions []byte
@@ -51,6 +52,7 @@ var definitions = map[Opcode]*Definition{
 	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
 	OpJump:          {"OpJump", []int{2}},
 	OpGreaterThan:   {"OpGreaterThan", []int{}},
+	OpNull:          {"OpNull", []int{}},
 }
 
 func (ins Instructions) String() string {
