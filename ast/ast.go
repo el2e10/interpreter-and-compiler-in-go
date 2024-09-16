@@ -231,7 +231,7 @@ func (es *ExpressionStatement) String() string {
 type LetStatement struct {
 	Token       token.Token // Tokens associated with the let statement let in the sentence let x = 2 + 5
 	Name        *Identifier //  x in 'let x = 2 + 5'
-	ReturnValue Expression  // 2 + 5
+	Value Expression  // 2 + 5
 }
 
 func (ls *LetStatement) statementNode() {}
@@ -245,8 +245,8 @@ func (ls *LetStatement) String() string {
 	out.WriteString(ls.Name.String())
 	out.WriteString(" = ")
 
-	if ls.ReturnValue != nil {
-		out.WriteString(ls.ReturnValue.String())
+	if ls.Value != nil {
+		out.WriteString(ls.Value.String())
 	}
 
 	out.WriteString(";")

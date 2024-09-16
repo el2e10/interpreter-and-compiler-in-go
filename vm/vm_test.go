@@ -16,6 +16,15 @@ type vmTestCase struct {
 	expected interface{}
 }
 
+func TestGlobalLetStatements(t *testing.T) {
+	tests := []vmTestCase{
+		{"let one = 1; one", 1},
+		{"let one = 1; let two = 2; one + two", 3},
+		{"let one = 1; let two = one + one; one + two", 3},
+	}
+	runVmTests(t, tests)
+}
+
 func TestConditionals(t *testing.T) {
 	tests := []vmTestCase{
 		{"if (true) { 10 }", 10},
@@ -89,8 +98,7 @@ func TestIntegerArithmetic(t *testing.T) {
 func runVmTests(t *testing.T, tests []vmTestCase) {
 	t.Helper()
 
-	for index, tt := range tests {
-		fmt.Println(index, tt.input)
+	for _, tt := range tests {
 		program := parse(tt.input)
 
 		comp := compiler.New()

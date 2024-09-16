@@ -474,7 +474,7 @@ func (p *Parser) parse_let_statement() *ast.LetStatement {
 	}
 
 	p.next_token()
-	statement.ReturnValue = p.parse_expression(LOWEST)
+	statement.Value = p.parse_expression(LOWEST)
 
 	for !p.current_token_is(token.SEMICOLON) {
 		p.next_token()
