@@ -37,7 +37,7 @@ func New() *Compiler {
 	}
 }
 
-func NewWithState(s *SymbolTable, constants []object.Object) *Compiler{
+func NewWithState(s *SymbolTable, constants []object.Object) *Compiler {
 	compiler := New()
 	compiler.symbolTable = s
 	compiler.constants = constants
@@ -175,6 +175,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 	case *ast.IntegerLiteral:
 		integer := &object.Integer{Value: node.Value}
 		c.emit(code.OpConstant, c.addConstant(integer))
+
+	case *ast.StringLiteral:
+		string := &object.String{Value: node.Value}
+		c.emit(code.OpConstant, c.addConstant(string))
 
 	}
 	return nil
