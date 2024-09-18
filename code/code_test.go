@@ -5,6 +5,7 @@ import (
 )
 
 
+
 func TestInstructionsString(t *testing.T) {
 	instructions := []Instructions{
 		Make(OpAdd),
