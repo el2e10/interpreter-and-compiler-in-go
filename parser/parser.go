@@ -346,7 +346,6 @@ func (p *Parser) ParseProgram() *ast.Program {
 	program.Statements = []ast.Statement{}
 
 	for !p.current_token_is(token.EOF) {
-
 		statement := p.parse_statement()
 		if statement != nil {
 			program.Statements = append(program.Statements, statement)
@@ -450,7 +449,7 @@ func (p *Parser) parse_return_statement() *ast.ReturnStatement {
 	p.next_token()
 	statement.Value = p.parse_expression(LOWEST)
 
-	for !p.current_token_is(token.SEMICOLON) {
+	if p.peek_token_is(token.SEMICOLON) {
 		p.next_token()
 	}
 
