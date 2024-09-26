@@ -17,6 +17,24 @@ type compilerTestCase struct {
 	expectedInstructions []code.Instructions
 }
 
+func TestFunctionsWithoutReturnValue(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `fn() { }`,
+			expectedConstants: []interface{}{
+				[]code.Instructions{
+					code.Make(code.OpReturn),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
+
 func TestCompilerScopes(t *testing.T) {
 	compiler := New()
 	if compiler.scopeIndex != 0 {
@@ -53,26 +71,41 @@ func TestCompilerScopes(t *testing.T) {
 	}
 
 	last = compiler.scopes[compiler.scopeIndex].lastInstruction
-	if last.OpCode != code.OpAdd{
+	if last.OpCode != code.OpAdd {
 		t.Errorf("lastInstruction.Opcode wrong. got=%d, wnat=%d", last.OpCode, code.OpAdd)
 	}
 
 	previous := compiler.scopes[compiler.scopeIndex].previousInstruction
-	if previous.OpCode != code.OpMul{
+	if previous.OpCode != code.OpMul {
 		t.Errorf("previousInstruction.Opcode wrong. got=%d, want=%d", previous.OpCode, code.OpMul)
 	}
-
 }
 
 func TestFunctions(t *testing.T) {
 	tests := []compilerTestCase{
 		{
-			input: `fn() { return 5 + 10 }`,
+			input: `fn() { 5 + 10 }`,
 			expectedConstants: []interface{}{
 				5, 10, []code.Instructions{
 					code.Make(code.OpConstant, 0),
 					code.Make(code.OpConstant, 1),
 					code.Make(code.OpAdd),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpPop),
+			},
+		}, {
+			input: `fn() { 1; 2 }`,
+			expectedConstants: []interface{}{
+				1,
+				2,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpPop),
+					code.Make(code.OpConstant, 1),
 					code.Make(code.OpReturnValue),
 				},
 			},
