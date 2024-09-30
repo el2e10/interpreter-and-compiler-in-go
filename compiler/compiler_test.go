@@ -17,6 +17,47 @@ type compilerTestCase struct {
 	expectedInstructions []code.Instructions
 }
 
+func TestFunctionCalls(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `fn() { 24 }();`,
+			expectedConstants: []interface{}{
+				24,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpCall),
+				code.Make(code.OpPop),
+			},
+		}, {
+			input: `
+			let noArg = fn() { 24 };
+			noArg();
+			`,
+			expectedConstants: []interface{}{
+				24,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpCall),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilerTests(t, tests)
+}
+
 func TestFunctionsWithoutReturnValue(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -513,7 +554,6 @@ func testConstants(t *testing.T, expected []interface{}, actual []object.Object)
 				return fmt.Errorf("constant %d - testStringObject failed: %s", i, err)
 			}
 		case []code.Instructions:
-			fmt.Println("Here")
 			fn, ok := actual[i].(*object.CompiledFunction)
 			if !ok {
 				return fmt.Errorf("constant %d - not a function: %T", i, actual[i])

@@ -32,6 +32,7 @@ const (
 	OpCode
 	OpReturnValue
 	OpReturn
+	OpCall
 )
 
 type Instructions []byte
@@ -69,6 +70,7 @@ var definitions = map[Opcode]*Definition{
 	OpCode:          {"OpCode", []int{}},
 	OpReturnValue:   {"OpReturnValue", []int{}},
 	OpReturn:        {"OpReturn", []int{}},
+	OpCall:          {"OpCall", []int{}},
 }
 
 func (ins Instructions) String() string {
