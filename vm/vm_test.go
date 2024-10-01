@@ -16,6 +16,43 @@ type vmTestCase struct {
 	expected interface{}
 }
 
+func TestFunctionsWithoutReturnValues(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+			let noReturn  = fn(){};
+			noReturn();
+			`,
+			expected: Null,
+		},
+		{
+			input: `
+			let noReturn = fn() { };
+			let noReturnTwo = fn() { noReturn(); };
+			noReturn();
+			noReturnTwo();
+			`,
+			expected: Null,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
+func TestCallingFunctionsWithoutArguments(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `
+			let fivePlusTen = fn() { 5 + 11; return 3; };
+			fivePlusTen()
+			`,
+			expected: 3,
+		},
+	}
+
+	runVmTests(t, tests)
+}
+
 func TestIndexExpression(t *testing.T) {
 	tests := []vmTestCase{
 		{"[1, 2, 3][1]", 2},

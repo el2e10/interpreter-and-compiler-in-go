@@ -77,6 +77,35 @@ func (vm *VM) Run() error {
 
 		switch op {
 
+		case code.OpCall:
+			fn, ok := vm.stack[vm.sp-1].(*object.CompiledFunction)
+			if !ok {
+				return fmt.Errorf("calling non-function")
+			}
+			frame := NewFrame(fn)
+			vm.pushFrame(frame)
+
+		case code.OpReturnValue:
+			returnValue := vm.pop()
+			vm.popFrame() // pop the function stack frame
+			vm.pop()      // pops the CompiledFunction off the stack
+
+			err := vm.push(returnValue)
+			if err != nil {
+				return err
+			}
+
+		case code.OpReturn:
+			// This is for functions without any return value
+			// In those cases we push null to the stack
+			vm.popFrame()
+			vm.pop()
+
+			err := vm.push(Null)
+			if err != nil {
+				return err
+			}
+
 		case code.OpIndex:
 			index := vm.pop()
 			left := vm.pop()
@@ -120,7 +149,6 @@ func (vm *VM) Run() error {
 		case code.OpGetGlobal:
 			globalIndex := code.ReadUint16(ins[ip+1:])
 			vm.currentFrame().ip += 2
-
 
 			err := vm.push(vm.globals[globalIndex])
 			if err != nil {
