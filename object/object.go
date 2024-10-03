@@ -31,6 +31,7 @@ type HashPair struct {
 
 type CompiledFunction struct {
 	Instructions code.Instructions
+	NumLocals    int
 }
 
 func (cf *CompiledFunction) Type() ObjectType { return COMPILED_FUNCTIN_OBJ }
