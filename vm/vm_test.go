@@ -16,6 +16,44 @@ type vmTestCase struct {
 	expected interface{}
 }
 
+func TestCallingFunctionsWithWrongArguments(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input:    `fn() { 1; }(1)`,
+			expected: `wrong number of arguments: want=0, got=1`,
+		},
+		{
+			input:    `fn(a) { a; }();`,
+			expected: `wrong number of arguments: want=1, got=0`,
+		},
+		{
+			input:    `fn(a, b) { a + b; }(1);`,
+			expected: `wrong number of arguments: want=2, got=1`,
+		},
+	}
+
+	for _, tt := range tests {
+		program := parse(tt.input)
+
+		comp := compiler.New()
+		err := comp.Compile(program)
+		if err != nil {
+			t.Fatalf("compiler error: %s", err)
+		}
+
+		vm := New(comp.Bytecode())
+		err = vm.Run()
+		if err == nil {
+			t.Fatal("expected VM error but resulted in none.")
+		}
+
+		if err.Error() != tt.expected{
+			t.Fatalf("wrong VM error: want=%q, got=%q", tt.expected, err)
+		}
+
+	}
+}
+
 func TestCallingFunctionWithArgumentsAndBinding(t *testing.T) {
 	tests := []vmTestCase{
 		{
@@ -31,6 +69,36 @@ func TestCallingFunctionWithArgumentsAndBinding(t *testing.T) {
 			sum(1, 2);
 			`,
 			expected: 3,
+		},
+		{
+			input: `
+			let sum = fn(a, b) {
+			let c = a + b;
+			c;
+			};
+			sum(1, 2);
+			`,
+			expected: 3,
+		},
+		{
+			input: `
+			let sum = fn(a, b){
+			let c = a + b;
+			c;
+			};
+			sum(1, 2) + sum(3, 4);
+			`,
+			expected: 10,
+		},
+		{
+			input: `
+			let sum = fn(a, b) {
+				let c = a + b;
+				c;
+			};
+			sum(5, 5)
+			`,
+			expected: 10,
 		},
 	}
 	runVmTests(t, tests)
