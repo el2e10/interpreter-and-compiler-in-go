@@ -11,7 +11,7 @@ var Builtins = []struct {
 		&Builtin{Fn: lenFn},
 	},
 	{
-		"put", &Builtin{Fn: putFn},
+		"puts", &Builtin{Fn: putFn},
 	},
 	{
 		"first", &Builtin{Fn: firstFn},
@@ -22,6 +22,9 @@ var Builtins = []struct {
 	{
 		"rest", &Builtin{Fn: restFn},
 	},
+	{
+		"push", &Builtin{Fn: pushFn},
+	},
 }
 
 func pushFn(args ...Object) Object {
@@ -30,7 +33,7 @@ func pushFn(args ...Object) Object {
 	}
 
 	if args[0].Type() != ARRAY_OBJ {
-		return newError("argumen to `first` must be ARRAY, got %s", args[0].Type())
+		return newError("argument to `push` must be ARRAY, got %s", args[0].Type())
 	}
 
 	arr := args[0].(*Array)
@@ -49,7 +52,7 @@ func restFn(args ...Object) Object {
 	}
 
 	if args[0].Type() != ARRAY_OBJ {
-		return newError("argumen to `first` must be ARRAY, got %s", args[0].Type())
+		return newError("argument to `rest` must be ARRAY, got %s", args[0].Type())
 	}
 
 	arr := args[0].(*Array)
@@ -69,7 +72,7 @@ func lastFn(args ...Object) Object {
 	}
 
 	if args[0].Type() != ARRAY_OBJ {
-		return newError("argumen to `first` must be ARRAY, got %s", args[0].Type())
+		return newError("argument to `last` must be ARRAY, got %s", args[0].Type())
 	}
 
 	arr := args[0].(*Array)
@@ -87,7 +90,7 @@ func firstFn(args ...Object) Object {
 	}
 
 	if args[0].Type() != ARRAY_OBJ {
-		return newError("argumen to `first` must be ARRAY, got %s", args[0].Type())
+		return newError("argument to `first` must be ARRAY, got %s", args[0].Type())
 	}
 
 	arr := args[0].(*Array)
