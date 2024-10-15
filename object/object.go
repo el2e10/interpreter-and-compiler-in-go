@@ -22,7 +22,18 @@ const (
 	ARRAY_OBJ            = "ARRAY"
 	HASH_OBJ             = "HASH"
 	COMPILED_FUNCTIN_OBJ = "COMPILED_FUNCTION_OBJ"
+	CLOSURE_OBJ          = "CLOSURE"
 )
+
+type Closure struct {
+	Fn   *CompiledFunction
+	Free []Object
+}
+
+func (c *Closure) Type() ObjectType { return CLOSURE_OBJ }
+func (c *Closure) Inspect() string {
+	return fmt.Sprintf("Closure[%p]", c)
+}
 
 type HashPair struct {
 	Key   Object
@@ -30,8 +41,8 @@ type HashPair struct {
 }
 
 type CompiledFunction struct {
-	Instructions code.Instructions
-	NumLocals    int
+	Instructions  code.Instructions
+	NumLocals     int
 	NumParameters int
 }
 
