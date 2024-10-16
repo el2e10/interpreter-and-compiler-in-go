@@ -37,6 +37,7 @@ const (
 	OpCall
 	OpGetBuiltin
 	OpClosure
+	OpGetFree
 )
 
 type Instructions []byte
@@ -79,6 +80,7 @@ var definitions = map[Opcode]*Definition{
 	OpGetLocal:      {"OpGetLocal", []int{1}},
 	OpGetBuiltin:    {"OpGetBuiltin", []int{1}},
 	OpClosure:       {"OpClosure", []int{2, 1}},
+	OpGetFree:       {"OpGetFree", []int{1}},
 }
 
 func (ins Instructions) String() string {
