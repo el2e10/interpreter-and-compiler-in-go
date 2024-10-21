@@ -17,6 +17,104 @@ type compilerTestCase struct {
 	expectedInstructions []code.Instructions
 }
 
+func TestDefineAndResolveFunctionName(t *testing.T) {
+	global := NewSymbolTable()
+	global.DefineFunctionName("a")
+	expected := Symbol{Name: "a", Scope: FunctionScope, Index: 0}
+	result, ok := global.Resolve(expected.Name)
+	if !ok {
+		t.Fatalf("function name %s not resolvable", expected.Name)
+	}
+	if result != expected {
+		t.Errorf("expected %s to resolve to %+v, got=%+v",
+			expected.Name, expected, result)
+	}
+}
+
+func TestShadowingFunctionName(t *testing.T) {
+	global := NewSymbolTable()
+	global.DefineFunctionName("a")
+	global.Define("a")
+	expected := Symbol{Name: "a", Scope: GlobalScope, Index: 0}
+	result, ok := global.Resolve(expected.Name)
+	if !ok {
+		t.Fatalf("function name %s not resolvable", expected.Name)
+	}
+	if result != expected {
+		t.Errorf("expected %s to resolve to %+v, got=%+v",
+			expected.Name, expected, result)
+	}
+}
+
+func TestRecursiveFunctions(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+		let countDown = fn(x) { countDown(x - 1); };
+		countDown(1);
+		`,
+			expectedConstants: []interface{}{
+				1,
+				[]code.Instructions{
+					code.Make(code.OpCurrentClosure),
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpSub),
+					code.Make(code.OpCall, 1),
+					code.Make(code.OpReturnValue),
+				},
+				1,
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpClosure, 1, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpCall, 1),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+let wrapper = fn() {
+let countDown = fn(x) { countDown(x - 1); };
+countDown(1);
+};
+wrapper();
+`,
+			expectedConstants: []interface{}{
+				1,
+				[]code.Instructions{
+					code.Make(code.OpCurrentClosure),
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpSub),
+					code.Make(code.OpCall, 1),
+					code.Make(code.OpReturnValue),
+				},
+				1,
+				[]code.Instructions{
+					code.Make(code.OpClosure, 1, 0),
+					code.Make(code.OpSetLocal, 0),
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpConstant, 2),
+					code.Make(code.OpCall, 1),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpClosure, 3, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpCall, 0),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+
+	runCompilerTests(t, tests)
+}
+
 func TestClosure(t *testing.T) {
 	tests := []compilerTestCase{
 		{
@@ -903,4 +1001,10 @@ func concatInstruction(expected []code.Instructions) code.Instructions {
 	}
 
 	return out
+}
+
+func (s *SymbolTable) DefineFunctionName(name string) Symbol {
+	symbol := Symbol{Name: name, Index: 0, Scope: FunctionScope}
+	s.store[name] = symbol
+	return symbol
 }

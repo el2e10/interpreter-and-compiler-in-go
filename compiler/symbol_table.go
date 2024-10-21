@@ -3,10 +3,11 @@ package compiler
 type SymbolScope string
 
 const (
-	LocalScope   SymbolScope = "LOCAL"
-	GlobalScope  SymbolScope = "GLOBAL"
-	BuiltinScope SymbolScope = "BUILDIN"
-	FreeScope    SymbolScope = "FREE"
+	LocalScope    SymbolScope = "LOCAL"
+	GlobalScope   SymbolScope = "GLOBAL"
+	BuiltinScope  SymbolScope = "BUILDIN"
+	FreeScope     SymbolScope = "FREE"
+	FunctionScope SymbolScope = "FUNCTION"
 )
 
 type Symbol struct {
@@ -56,11 +57,11 @@ func (s *SymbolTable) Resolve(name string) (Symbol, bool) {
 	obj, ok := s.store[name]
 	if !ok && s.Outer != nil {
 		obj, ok = s.Outer.Resolve(name)
-		if !ok{
+		if !ok {
 			return obj, ok
 		}
 
-		if obj.Scope == GlobalScope || obj.Scope == BuiltinScope{
+		if obj.Scope == GlobalScope || obj.Scope == BuiltinScope {
 			return obj, ok
 		}
 
@@ -76,7 +77,12 @@ func (s *SymbolTable) defineFree(original Symbol) Symbol {
 	symbol := Symbol{Name: original.Name, Index: len(s.FreeSymbols) - 1}
 	symbol.Scope = FreeScope
 
-
 	s.store[symbol.Name] = symbol
+	return symbol
+}
+
+func (s *SymbolTable) DefineFunctionName(name string) Symbol {
+	symbol := Symbol{Name: name, Index: 0, Scope: FunctionScope}
+	s.store[name] = symbol
 	return symbol
 }

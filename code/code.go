@@ -21,6 +21,7 @@ const (
 	OpMinus // negation operator
 	OpBang
 	OpPop // Remove the top element from the stack
+	OpCurrentClosure
 	OpJumpNotTruthy
 	OpJump
 	OpNull
@@ -50,37 +51,38 @@ type Definition struct {
 }
 
 var definitions = map[Opcode]*Definition{
-	OpConstant:      {"OpConstant", []int{2}},
-	OpAdd:           {"OpAdd", []int{}},
-	OpSub:           {"OpSub", []int{}},
-	OpMul:           {"OpMul", []int{}},
-	OpDiv:           {"OpDiv", []int{}},
-	OpTrue:          {"OpTrue", []int{}},
-	OpFalse:         {"OpFalse", []int{}},
-	OpPop:           {"OpPop", []int{}},
-	OpEqual:         {"OpEqual", []int{}},
-	OpNotEqual:      {"OpNotEqual", []int{}},
-	OpLessThan:      {"OpLessThan", []int{}},
-	OpMinus:         {"OpMinus", []int{}},
-	OpBang:          {"OpBang", []int{}},
-	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
-	OpJump:          {"OpJump", []int{2}},
-	OpGreaterThan:   {"OpGreaterThan", []int{}},
-	OpNull:          {"OpNull", []int{}},
-	OpGetGlobal:     {"OpGetGlobal", []int{2}},
-	OpSetGlobal:     {"OpSetGlobal", []int{2}},
-	OpArray:         {"OpArray", []int{2}},
-	OpHash:          {"OpHash", []int{2}},
-	OpIndex:         {"OpIndex", []int{}},
-	OpCode:          {"OpCode", []int{}},
-	OpReturnValue:   {"OpReturnValue", []int{}},
-	OpReturn:        {"OpReturn", []int{}},
-	OpCall:          {"OpCall", []int{1}},
-	OpSetLocal:      {"OpSetLocal", []int{1}},
-	OpGetLocal:      {"OpGetLocal", []int{1}},
-	OpGetBuiltin:    {"OpGetBuiltin", []int{1}},
-	OpClosure:       {"OpClosure", []int{2, 1}},
-	OpGetFree:       {"OpGetFree", []int{1}},
+	OpConstant:       {"OpConstant", []int{2}},
+	OpAdd:            {"OpAdd", []int{}},
+	OpSub:            {"OpSub", []int{}},
+	OpMul:            {"OpMul", []int{}},
+	OpDiv:            {"OpDiv", []int{}},
+	OpTrue:           {"OpTrue", []int{}},
+	OpFalse:          {"OpFalse", []int{}},
+	OpPop:            {"OpPop", []int{}},
+	OpEqual:          {"OpEqual", []int{}},
+	OpNotEqual:       {"OpNotEqual", []int{}},
+	OpLessThan:       {"OpLessThan", []int{}},
+	OpMinus:          {"OpMinus", []int{}},
+	OpBang:           {"OpBang", []int{}},
+	OpJumpNotTruthy:  {"OpJumpNotTruthy", []int{2}},
+	OpJump:           {"OpJump", []int{2}},
+	OpGreaterThan:    {"OpGreaterThan", []int{}},
+	OpNull:           {"OpNull", []int{}},
+	OpGetGlobal:      {"OpGetGlobal", []int{2}},
+	OpSetGlobal:      {"OpSetGlobal", []int{2}},
+	OpArray:          {"OpArray", []int{2}},
+	OpHash:           {"OpHash", []int{2}},
+	OpIndex:          {"OpIndex", []int{}},
+	OpCode:           {"OpCode", []int{}},
+	OpReturnValue:    {"OpReturnValue", []int{}},
+	OpReturn:         {"OpReturn", []int{}},
+	OpCall:           {"OpCall", []int{1}},
+	OpSetLocal:       {"OpSetLocal", []int{1}},
+	OpGetLocal:       {"OpGetLocal", []int{1}},
+	OpGetBuiltin:     {"OpGetBuiltin", []int{1}},
+	OpClosure:        {"OpClosure", []int{2, 1}},
+	OpCurrentClosure: {"OpCurrentClosure", []int{}},
+	OpGetFree:        {"OpGetFree", []int{1}},
 }
 
 func (ins Instructions) String() string {

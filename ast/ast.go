@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 
 	"monkey/token"
@@ -111,6 +112,7 @@ type FunctionLiteral struct {
 	Token      token.Token
 	Parameters []*Identifier
 	Body       *BlockStatement
+	Name       string
 }
 
 func (fl *FunctionLiteral) expressionNode()      {}
@@ -124,6 +126,10 @@ func (fl *FunctionLiteral) String() string {
 	}
 
 	out.WriteString(fl.TokenLiteral())
+	if fl.Name != " "{
+		out.WriteString(fmt.Sprintf("<%s>", fl.Name))
+	}
+	out.WriteString("(")
 	out.WriteString(" ")
 	out.WriteString(strings.Join(params, ", "))
 	out.WriteString(") ")
@@ -229,8 +235,8 @@ func (es *ExpressionStatement) String() string {
 }
 
 type LetStatement struct {
-	Token       token.Token // Tokens associated with the let statement let in the sentence let x = 2 + 5
-	Name        *Identifier //  x in 'let x = 2 + 5'
+	Token token.Token // Tokens associated with the let statement let in the sentence let x = 2 + 5
+	Name  *Identifier //  x in 'let x = 2 + 5'
 	Value Expression  // 2 + 5
 }
 

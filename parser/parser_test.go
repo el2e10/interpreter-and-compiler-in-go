@@ -8,6 +8,30 @@ import (
 	"monkey/lexer"
 )
 
+func TestFunctionLiteralWithName(t *testing.T) {
+	input := `let myFunction = fn() { };`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	check_parser_errors(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Body does not contain %d statements. got=%d\n", 1, len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.LetStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.LetStatement. got=%T",
+			program.Statements[0])
+	}
+	function, ok := stmt.Value.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("stmt.Value is not ast.FunctionLiteral. got=%T",
+			stmt.Value)
+	}
+	if function.Name != "myFunction" {
+		t.Fatalf("function literal name wrong. want 'myFunction', got=%q\n", function.Name)
+	}
+}
+
 func TestParsingHashLiteralsStringKeys(t *testing.T) {
 	input := `{"one": 1, "two": 2, "three": 3}`
 
@@ -399,9 +423,9 @@ func TestBooleanExpression(t *testing.T) {
 		t.Fatalf("Wrong program.Statement[0] type, got=%T", program.Statements[0])
 	}
 
-	expression, ok := statement.ReturnValue.(*ast.Boolean)
+	expression, ok := statement.Value.(*ast.Boolean)
 	if !ok {
-		t.Fatalf("Wrong Expression type expected Boolean got=%T %q", statement.ReturnValue, statement)
+		t.Fatalf("Wrong Expression type expected Boolean got=%T %q", statement.Value, statement)
 	}
 
 	if expression.Value != true {
